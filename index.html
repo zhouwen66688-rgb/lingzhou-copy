@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>复制专属链接</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: #eaf8f0;
+      background:
+        linear-gradient(133deg, rgba(34, 143, 104, .22), transparent 48%),
+        #081813;
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .card {
+      width: min(100%, 420px);
+      padding: 28px 24px 24px;
+      border: 1px solid rgba(130, 235, 188, .18);
+      border-radius: 12px;
+      background: rgba(10, 31, 24, .86);
+      box-shadow: 0 26px 80px rgba(0, 0, 0, .28);
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: #74d4a8;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .16em;
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.35;
+      letter-spacing: -.02em;
+    }
+    .desc {
+      margin: 10px 0 22px;
+      color: #93b0a3;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .url {
+      margin: 0 0 18px;
+      padding: 13px 14px;
+      color: #e9c37e;
+      background: rgba(255, 255, 255, .035);
+      border: 1px solid rgba(233, 195, 126, .22);
+      border-radius: 6px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      word-break: break-all;
+    }
+    button {
+      width: 100%;
+      min-height: 50px;
+      border: 0;
+      border-radius: 7px;
+      color: #082017;
+      background: #7ce0b2;
+      font: 800 17px/1 "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      cursor: pointer;
+      transition: transform .16s ease, background .16s ease;
+    }
+    button:active { transform: scale(.98); }
+    button.copied {
+      color: #f3fff8;
+      background: #167451;
+    }
+    .status {
+      min-height: 22px;
+      margin: 12px 0 0;
+      color: #91b7a5;
+      font-size: 13px;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .back {
+      display: block;
+      margin-top: 18px;
+      color: #a7bcb1;
+      font-size: 13px;
+      line-height: 1.5;
+      text-align: center;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">LINGZHOU AI · COPY LINK</p>
+    <h1 id="title">复制专属链接</h1>
+    <p class="desc">点击下方按钮，把专属入口复制到剪贴板。</p>
+    <p class="url" id="url">链接加载中…</p>
+    <button type="button" id="copy">复制专属链接</button>
+    <p class="status" id="status"></p>
+    <a class="back" href="javascript:history.length > 1 ? history.back() : void 0">返回公众号文章</a>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const rawUrl = params.get("url") || "";
+    const rawTitle = params.get("title") || "复制专属链接";
+    const copyText = params.get("text") || rawUrl;
+    const title = document.getElementById("title");
+    const url = document.getElementById("url");
+    const copy = document.getElementById("copy");
+    const status = document.getElementById("status");
+
+    if (rawTitle) title.textContent = rawTitle;
+    if (rawUrl) {
+      url.textContent = rawUrl;
+    } else {
+      url.textContent = "未传入链接";
+      copy.disabled = true;
+    }
+
+    async function writeClipboard(value) {
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(value);
+          return true;
+        } catch {}
+      }
+      const input = document.createElement("textarea");
+      input.value = value;
+      input.setAttribute("readonly", "");
+      input.style.position = "fixed";
+      input.style.opacity = "0";
+      document.body.appendChild(input);
+      input.select();
+      const ok = document.execCommand("copy");
+      input.remove();
+      return ok;
+    }
+
+    async function copyLink() {
+      if (!copyText) return;
+      const ok = await writeClipboard(copyText);
+      if (ok) {
+        copy.textContent = "已复制";
+        copy.classList.add("copied");
+        status.textContent = "复制成功，可以返回公众号了。";
+      } else {
+        status.textContent = "复制失败，请长按上方链接手动复制。";
+      }
+    }
+
+    copy.addEventListener("click", copyLink);
+    if (copyText) {
+      status.textContent = "正在尝试复制…";
+      copyLink();
+    }
+  </script>
+</body>
+</html>
