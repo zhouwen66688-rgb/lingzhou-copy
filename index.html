@@ -57,6 +57,30 @@
       line-height: 1.6;
       word-break: break-all;
     }
+    .links {
+      display: grid;
+      gap: 16px;
+    }
+    .link-card {
+      padding: 16px;
+      border: 1px solid rgba(130, 235, 188, .16);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .025);
+    }
+    .link-card p {
+      margin: 0 0 10px;
+    }
+    .link-card .label {
+      color: #75d4a9;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    .link-card .name {
+      color: #f3fff8;
+      font-size: 16px;
+      font-weight: 700;
+    }
     button {
       width: 100%;
       min-height: 50px;
@@ -90,6 +114,7 @@
       text-align: center;
       text-decoration: none;
     }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -97,8 +122,24 @@
     <p class="eyebrow">LINGZHOU AI · COPY LINK</p>
     <h1 id="title">复制专属链接</h1>
     <p class="desc">点击下方按钮，把专属入口复制到剪贴板。</p>
-    <p class="url" id="url">链接加载中…</p>
-    <button type="button" id="copy">复制专属链接</button>
+    <div id="single">
+      <p class="url" id="url">链接加载中…</p>
+      <button type="button" id="copy">复制专属链接</button>
+    </div>
+    <div class="links hidden" id="multiple">
+      <div class="link-card">
+        <p class="label">01 · 画布专属链接</p>
+        <p class="name">AI 图片、视频与无限画布创作工作站</p>
+        <p class="url">https://studio.lingzhouai.com/register?ref=ic_G3YBM0dVk34Mo1BX</p>
+        <button type="button" data-url="https://studio.lingzhouai.com/register?ref=ic_G3YBM0dVk34Mo1BX">复制画布专属链接</button>
+      </div>
+      <div class="link-card">
+        <p class="label">02 · 主站专属链接</p>
+        <p class="name">把模型能力接进脚本、工具与产品</p>
+        <p class="url">https://api.lingzhouai.com/register?aff=buYr</p>
+        <button type="button" data-url="https://api.lingzhouai.com/register?aff=buYr">复制主站专属链接</button>
+      </div>
+    </div>
     <p class="status" id="status"></p>
     <a class="back" href="javascript:history.length > 1 ? history.back() : void 0">返回公众号文章</a>
   </main>
@@ -110,11 +151,17 @@
     const copyText = params.get("text") || rawUrl;
     const title = document.getElementById("title");
     const url = document.getElementById("url");
+    const single = document.getElementById("single");
+    const multiple = document.getElementById("multiple");
     const copy = document.getElementById("copy");
     const status = document.getElementById("status");
 
-    if (rawTitle) title.textContent = rawTitle;
-    if (rawUrl) {
+    if (!rawUrl) {
+      title.textContent = "复制专属链接";
+      single.classList.add("hidden");
+      multiple.classList.remove("hidden");
+    } else if (rawUrl) {
+      if (rawTitle) title.textContent = rawTitle;
       url.textContent = rawUrl;
     } else {
       url.textContent = "未传入链接";
@@ -143,25 +190,31 @@
       return ok;
     }
 
-    async function copyLink() {
-      if (!copyText) return;
-      const ok = await writeClipboard(copyText);
+    async function copyLink(value, button) {
+      if (!value) return;
+      const ok = await writeClipboard(value);
       if (ok) {
-        copy.textContent = "已复制";
-        copy.classList.add("copied");
+        if (button) {
+          button.textContent = "已复制";
+          button.classList.add("copied");
+        }
         status.textContent = "复制成功，可以返回公众号了。";
       } else {
         status.textContent = "复制失败，请长按上方链接手动复制。";
       }
     }
 
-    copy.addEventListener("click", copyLink);
-    if (copyText) {
+    if (rawUrl) {
+      copy.addEventListener("click", () => copyLink(copyText, copy));
       status.textContent = "正在尝试复制…";
-      copyLink().finally(() => {
+      copyLink(copyText, copy).finally(() => {
         if (status.textContent === "正在尝试复制…") {
           status.textContent = "如果没有自动复制，请点击上方按钮。";
         }
+      });
+    } else {
+      document.querySelectorAll("[data-url]").forEach((button) => {
+        button.addEventListener("click", () => copyLink(button.dataset.url, button));
       });
     }
   </script>
